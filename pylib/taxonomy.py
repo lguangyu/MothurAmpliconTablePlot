@@ -45,6 +45,7 @@ class MothurTaxonomy(object):
 	def from_str(cls, s: str):
 		"""
 		parse taxonomy from the mothur output format: taxonomy_str(bootstrap)
+
 		example:
 		Gammaproteobacteria(100)
 		"""
@@ -123,6 +124,7 @@ class MothurLineage(list):
 		"""
 		parse lineage from mothur output format;
 		the lineage is a string of standard taxonomies separated by semi-colon:
+
 		example:
 		Bacteria(100);Proteobacteria(100);Gammaproteobacteria(100);Pseudomonadales(100);Moraxellaceae(100);Acinetobacter(100);
 
@@ -141,6 +143,14 @@ class MothurLineage(list):
 
 
 class MothurOtuTaxonomy(object):
+	"""
+	MothurOtuTaxonomy targets at the i/o of each line in mothur taxonomy output;
+	the format is 3-column tab-delimited:
+	otu_name, size, taxonomy (lineage)
+
+	example:
+	Otu000001	412495	Bacteria(100);Bacteroidetes(100);Sphingobacteriia(100);Sphingobacteriales(100);PHOS-HE51(100);PHOS-HE51_ge(100);
+	"""
 	def __init__(self, otu_name: str, size: int, taxonomy: MothurLineage,
 			*ka, **kw):
 		super().__init__(*ka, **kw)
@@ -162,8 +172,16 @@ class MothurOtuTaxonomy(object):
 
 
 class MothurOtuTaxonomyDict(dict):
+	"""
+	MothurOtuTaxonomyDict is a wrapper to read mothur taxonomy output file;
+	dict maps otu_name to taxonomy object
+	"""
 	@classmethod
 	def from_file(cls, file, *ka, **kw):
+		"""
+		parse mothur taxonomy output file by lines
+		note the file contains a header needs to be discarded
+		"""
 		new = cls(*ka, **kw)
 		with file_util.get_fp(file, "r") as fp:
 			for line in fp:
