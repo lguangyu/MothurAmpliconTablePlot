@@ -25,6 +25,19 @@ class TaggedTable(object):
 		ret.data = ret.data / ret.data.sum(axis = 1, keepdims = True)
 		return ret
 
+	@property
+	def shape(self):
+		return self.data.shape
+	@property
+	def nrow(self):
+		return len(self.row_tag)
+	@property
+	def ncol(self):
+		return len(self.col_tag)
+	@property
+	def dtype(self):
+		return self.data.dtype
+
 	@classmethod
 	def _get_sorted_index(cls, data, method):
 		if method == "by_average":
@@ -58,12 +71,16 @@ class TaggedTable(object):
 		return ret
 
 	@classmethod
-	def from_file(cls, file, *, data_type = float, delimiter = "\t"):
+	def from_file(cls, file, *, data_type = float, delimiter = "\t",
+			transposed = False):
 		"""
 		parse mothur output shared file as tabular data, assuming 1st row as
 		column tags and 1st column as row tags
 		"""
-		raw = numpy.loadtxt(file, dtype = object, delimiter = delimiter)
+		raw = numpy.loadtxt(file, dtype = object, delimiter = delimiter,
+			ndmin = 2)
+		if transposed:
+			raw = raw.T
 		new = cls(
 			row_tag		= raw[1:, 0],
 			col_tag		= raw[0, 1:],
@@ -131,7 +148,7 @@ class MothurSharedTable(TaggedTable):
 		"""
 		nrow, ncol = self.data.shape
 		tax_data = collections.defaultdict(lambda : numpy.zeros(nrow,
-			dtype = self.data.dtype))
+			dtype = self.dtype))
 		for i, o in enumerate(self.otu):
 			tax = otu_tax_dict[o].taxonomy[tax_rank]
 			if not tax:
@@ -139,7 +156,7 @@ class MothurSharedTable(TaggedTable):
 			tax_data[tax.unique_taxon_name] += self.data[:, i]
 		# make return object
 		col_tag = numpy.asarray(list(tax_data.keys()), dtype = object)
-		data = numpy.empty((nrow, len(col_tag)), dtype = self.data.dtype)
+		data = numpy.empty((nrow, len(col_tag)), dtype = self.dtype)
 		# use loop instead of hstack/vstack to avoid empty tax_data error
 		# such case will occur when no otu classified at a certain level
 		# for example, default mothur SOP classify as deep as genus level
