@@ -54,7 +54,7 @@ class MothurTaxonomy(object):
 		else:
 			m = cls.TAX_REGEX.match(s)
 			if not m:
-				raise ValueError("taxon string in invalid format: '%'" % s)
+				raise ValueError("taxon string in invalid format: '%s'" % s)
 			new = cls(taxon_name = m.group(1), bootstrap = int(m.group(2)))
 		return new
 

@@ -70,7 +70,7 @@ def _filter_taxons_by_max_n(tax_abund, max_n_taxons):
 		ncol	= max_n_taxons + 1
 		col_tag	= numpy.empty(ncol, dtype = object)
 		col_tag[:max_n_taxons]	= tax_abund.col_tag[:max_n_taxons]
-		col_tag[max_n_taxons]	= "[all others]"
+		col_tag[max_n_taxons]	= "[all others classified]"
 		data	= numpy.hstack([tax_abund.data[:, :max_n_taxons],
 			tax_abund.data[:, max_n_taxons:].sum(axis = 1, keepdims = True)])
 	else:
@@ -146,9 +146,13 @@ def plot(png, abund_table, *, title = "", percent = False):
 	if percent:
 		vmax	= 100
 		vformat	= "%.1f"
+		min_val	= 0.1
+		min_txt	= "min."
 	else:
 		vmax	= 1.0
 		vformat	= "%.2f"
+		min_val	= 0.01
+		min_txt	= "min."
 
 	# layout
 	figure = matplotlib.pyplot.figure()
@@ -161,8 +165,14 @@ def plot(png, abund_table, *, title = "", percent = False):
 	# add text on heatmap
 	for r, c in itertools.product(range(n_taxon), range(n_sample)):
 		val = data[r, c] * vmax
-		text = ("" if val == 0 else vformat % val)
-		color = ("#000000" if (val <= 70) and (val >= 20) else "#FFFFFF")
+		if val == 0:
+			text = ""
+		elif val < min_val:
+			text = min_txt
+		else:
+			text = vformat % val
+		color = ("#000000" if (val <= 0.7 * vmax) and (val >= 0.2 * vmax)\
+			else "#FFFFFF")
 		axes.text(x = c + 0.5, y = r + 0.5, s = text, fontsize = 8,
 			color = color,
 			horizontalalignment = "center", verticalalignment = "center")
