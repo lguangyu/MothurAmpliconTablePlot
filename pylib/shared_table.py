@@ -135,15 +135,16 @@ class MothurSharedTable(TaggedTable):
 		)
 		return new
 
-	def group_by_taxonomy(self, otu_tax_dict: dict, tax_rank) -> TaggedTable:
+	def group_by_taxonomy(self, otu_tax_dict: dict, tax_rank,
+			min_bootstrap: int = 0) -> TaggedTable:
 		"""
-		group otus into taxons at <tax_rank>, then sum otu counts into taxon
-		counts
+		group otus into taxons at <tax_rank> with at least <min_bootstrap>,
+		then sum otu counts into taxon counts
 
 		to do this,
 		1. create an intermediate dictionary of tax_name->data_per_tax
-		2. iterate over all otus, use otu.unique_taxon_name as key, sum data
-		   into the dictionary
+		2. iterate over all otus, use otu.unique_taxon_name as key, if bootstrap
+		   value is qualified, sum its data into the dictionary
 		3. stack/combine the data in dictionary
 		"""
 		nrow, ncol = self.data.shape
@@ -151,8 +152,12 @@ class MothurSharedTable(TaggedTable):
 			dtype = self.dtype))
 		for i, o in enumerate(self.otu):
 			tax = otu_tax_dict[o].taxonomy[tax_rank]
+			# check if classified at this level
 			if not tax:
-				continue # if not classified at this level
+				continue
+			# check min_bootstrap
+			if tax.bootstrap < min_bootstrap:
+				continue
 			tax_data[tax.unique_taxon_name] += self.data[:, i]
 		# make return object
 		col_tag = numpy.asarray(list(tax_data.keys()), dtype = object)

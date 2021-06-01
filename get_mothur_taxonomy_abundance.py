@@ -18,6 +18,10 @@ def get_args():
 	ap.add_argument("-r", "--tax-rank", type = str, default = "genus",
 		choices = pylib.taxonomy.MothurLineage.RANK,
 		help = "taxonomic rank to extrack (default: genus)")
+	ap.add_argument("--min-bootstrap", type = int, default = 0,
+		metavar = "int",
+		help = "minimum bootstrap value (included) to account for taxonomic "
+			"classification; 0 means accepting everything (default: 0)")
 	ap.add_argument("-o", "--output", type = str, default = "-",
 		metavar = "tsv",
 		help = "output taxonomic abundance table (default: <stdout>)")
@@ -39,7 +43,8 @@ def main():
 	taxonomy	= pylib.taxonomy.MothurOtuTaxonomyDict.from_file(args.taxonomy)
 	# calculate taxonomic abundances
 	otu_abund	= otu_count.normalize_rows()
-	tax_abund	= otu_abund.group_by_taxonomy(taxonomy, args.tax_rank)
+	tax_abund	= otu_abund.group_by_taxonomy(taxonomy,
+		tax_rank = args.tax_rank, min_bootstrap = args.min_bootstrap)
 	# save
 	tax_abund.save(args.output, transpose = args.transpose_output)
 	return
