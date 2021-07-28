@@ -7,8 +7,8 @@ import pylib
 
 
 def get_args():
-	ap = argparse.ArgumentParser("calculate relative abundances of taxons at "
-		"given taxon rank")
+	ap = argparse.ArgumentParser("calculate relative abundances of taxa at "
+		"given taxonomy rank")
 	ap.add_argument("-s", "--shared", type = str, required = True,
 		metavar = "shared",
 		help = "the otu count table in mothur SOP output (required)")

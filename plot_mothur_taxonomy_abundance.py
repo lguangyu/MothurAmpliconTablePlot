@@ -19,10 +19,10 @@ def get_args():
 		help = "read input table as if transposed (default: off)")
 	ap.add_argument("--taxon-list", type = str,
 		metavar = "txt",
-		help = "if provided, only plot taxons provided by this list")
-	ap.add_argument("--max-n-taxons", type = int, default = 20,
+		help = "if provided, only plot taxa provided by this list")
+	ap.add_argument("--max-n-taxa", type = int, default = 20,
 		metavar = "int",
-		help = "plot at most this many taxons (default: 20); ignored if "
+		help = "plot at most this many taxa (default: 20); ignored if "
 			"--taxon-list is used")
 	ap.add_argument("--plot-percent", action = "store_true",
 		help = "plot in percent instead of fraction (default: no)")
@@ -41,17 +41,17 @@ def get_args():
 	return args
 
 
-def get_plot_abund_table(tax_abund, *, taxon_list = None, max_n_taxons = 20)\
+def get_plot_abund_table(tax_abund, *, taxon_list = None, max_n_taxa = 20)\
 		-> pylib.shared_table.TaggedTable:
-	return _filter_taxons_by_list(tax_abund, taxon_list) if taxon_list\
-		else _filter_taxons_by_max_n(tax_abund, max_n_taxons)
+	return _filter_taxa_by_list(tax_abund, taxon_list) if taxon_list\
+		else _filter_taxa_by_max_n(tax_abund, max_n_taxa)
 
 
-def _filter_taxons_by_list(tax_abund, taxon_list):
+def _filter_taxa_by_list(tax_abund, taxon_list):
 	with pylib.file_util.get_fp(taxon_list, "r") as fp:
 		user_tax = fp.read().splitlines()
 	user_tax_order = {k:i for (i, k) in enumerate(user_tax)}
-	# filter taxons
+	# filter taxa
 	data = numpy.zeros((tax_abund.nrow, len(user_tax)), dtype = tax_abund.dtype)
 	for i, t in enumerate(tax_abund.col_tag):
 		if t in user_tax_order:
@@ -61,18 +61,18 @@ def _filter_taxons_by_list(tax_abund, taxon_list):
 	return ret
 
 
-def _filter_taxons_by_max_n(tax_abund, max_n_taxons):
+def _filter_taxa_by_max_n(tax_abund, max_n_taxa):
 	nrow, ncol = tax_abund.shape
-	# if too many taxons (> max_n_taxons), combine everthing ranked lower
+	# if too many taxa (> max_n_taxa), combine everthing ranked lower
 	# into '[all others]' category
-	# rows: samples; cols: taxons
-	if max_n_taxons < ncol:
-		ncol	= max_n_taxons + 1
+	# rows: samples; cols: taxa
+	if max_n_taxa < ncol:
+		ncol	= max_n_taxa + 1
 		col_tag	= numpy.empty(ncol, dtype = object)
-		col_tag[:max_n_taxons]	= tax_abund.col_tag[:max_n_taxons]
-		col_tag[max_n_taxons]	= "[all others classified]"
-		data	= numpy.hstack([tax_abund.data[:, :max_n_taxons],
-			tax_abund.data[:, max_n_taxons:].sum(axis = 1, keepdims = True)])
+		col_tag[:max_n_taxa]	= tax_abund.col_tag[:max_n_taxa]
+		col_tag[max_n_taxa]	= "[all others classified]"
+		data	= numpy.hstack([tax_abund.data[:, :max_n_taxa],
+			tax_abund.data[:, max_n_taxa:].sum(axis = 1, keepdims = True)])
 	else:
 		col_tag	= tax_abund.col_tag
 		data	= tax_abund.data
@@ -219,7 +219,7 @@ def main():
 		transposed = args.input_transposed)
 	# plot
 	plot_abund	= get_plot_abund_table(tax_abund, taxon_list = args.taxon_list,
-		max_n_taxons = args.max_n_taxons)
+		max_n_taxa = args.max_n_taxa)
 	plot(args.plot, plot_abund, title = args.plot_title,
 		percent = args.plot_percent)
 	return
