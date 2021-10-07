@@ -101,6 +101,10 @@ def setup_layout(figure):
 	return layout
 
 
+def max_norm(mat, *, ord = 2, axis = 1, **kw):
+	return max(numpy.linalg.norm(mat, ord = ord, axis = axis, **kw))
+
+
 def plot(png, analyzed_pca: PcaAnalyzer, *, biplot_n_feat = 5, title = ""):
 	#assert isinstance(analyzed_pca, PcaAnalyzer)
 	# layout
@@ -109,8 +113,10 @@ def plot(png, analyzed_pca: PcaAnalyzer, *, biplot_n_feat = 5, title = ""):
 
 	# plot pca
 	axes = layout["pca"]
-	x = analyzed_pca.transformed_abund_table[:, 0]
-	y = analyzed_pca.transformed_abund_table[:, 1]
+	# rescale pca scatter to 5
+	pca_scatter_scale = 5.0 / max_norm(analyzed_pca.transformed_abund_table)
+	x = analyzed_pca.transformed_abund_table[:, 0] * pca_scatter_scale
+	y = analyzed_pca.transformed_abund_table[:, 1] * pca_scatter_scale
 	axes.scatter(x, y, marker = "o", s = 40, edgecolors = "#4040FF",
 		facecolors = "#FFFFFF80", linewidths = 1.0, zorder = 3)
 
@@ -119,9 +125,11 @@ def plot(png, analyzed_pca: PcaAnalyzer, *, biplot_n_feat = 5, title = ""):
 		axes.text(tx, ty, s, fontsize = 10, color = "#000000")
 
 	# add biplot
-	biplot_n_feat	= 5
+	biplot_n_feat = 5
+	biplot_scale = 3.0 / max_norm(analyzed_pca.components_[:, :biplot_n_feat],
+		axis = 0)
 	for i in range(biplot_n_feat):
-		xy = analyzed_pca.components_[:, i]
+		xy = analyzed_pca.components_[:, i] * biplot_scale
 		arrow = AspectInvariantFancyArrowPatch(posA = (0, 0), posB = xy,
 			arrowstyle = "-|>, head_length = 5.0, head_width=2.5",
 			linewidth = 1.0, color = "#000000", zorder = 4)
