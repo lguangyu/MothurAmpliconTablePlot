@@ -70,7 +70,7 @@ def _filter_taxa_by_max_n(tax_abund, max_n_taxa):
 		ncol	= max_n_taxa + 1
 		col_tag	= numpy.empty(ncol, dtype = object)
 		col_tag[:max_n_taxa]	= tax_abund.col_tag[:max_n_taxa]
-		col_tag[max_n_taxa]	= "[all others classified]"
+		col_tag[max_n_taxa]	= "[all others fully/partially classified]"
 		data	= numpy.hstack([tax_abund.data[:, :max_n_taxa],
 			tax_abund.data[:, max_n_taxa:].sum(axis = 1, keepdims = True)])
 	else:
