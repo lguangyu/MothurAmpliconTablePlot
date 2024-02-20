@@ -49,7 +49,7 @@ class MothurTaxonomy(object):
 		example:
 		Gammaproteobacteria(100)
 		"""
-		if not s:
+		if (not s) or (s == "unknown"):
 			new = cls("", 0)
 		else:
 			m = cls.TAX_REGEX.match(s)
